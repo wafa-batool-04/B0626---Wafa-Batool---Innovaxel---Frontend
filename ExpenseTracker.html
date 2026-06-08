@@ -3,201 +3,454 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Expense Tracker | Personal Finance</title>
-  <!-- Tailwind CSS + Font Awesome + Chart.js CDN -->
+  <title>PearlLedger • PKR Expense Tracker</title>
+  <!-- Tailwind + Font Awesome + Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#7E22CE',
+            secondary: '#34D399',
+            accent: '#F97316',
+            cream: '#FAFAF9',
+            charcoal: '#292524',
+            error: '#EF4444',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            'xl': '1rem',
+            '2xl': '1.5rem',
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.2s ease-out',
+            'slide-in': 'slideIn 0.3s ease-out',
+            'modal-pop': 'modalPop 0.2s cubic-bezier(0.34, 1.2, 0.64, 1)',
+            'shake': 'shake 0.3s ease-in-out'
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(6px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            slideIn: {
+              '0%': { opacity: '0', transform: 'translateX(-10px)' },
+              '100%': { opacity: '1', transform: 'translateX(0)' },
+            },
+            modalPop: {
+              '0%': { opacity: '0', transform: 'scale(0.95) translateY(10px)' },
+              '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+            },
+            shake: {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '25%': { transform: 'translateX(-5px)' },
+              '75%': { transform: 'translateX(5px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    /* Custom color overrides to match the exact scheme */
+    * {
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
     body {
-      background: #FAFAF9; /* stone-50 */
-    }
-    .card-transition {
-      transition: all 0.2s ease-in-out;
-    }
-    .error-shake {
-      animation: shake 0.2s ease-in-out 0s 2;
-    }
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      75% { transform: translateX(4px); }
+      transition: background 0.2s, color 0.2s;
     }
     ::-webkit-scrollbar {
       width: 6px;
+      height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #E7E5E4; /* stone-200 */
+      background: #e5e7eb;
       border-radius: 10px;
     }
     ::-webkit-scrollbar-thumb {
-      background: #A8A29E; /* stone-400 */
+      background: #cbd5e1;
       border-radius: 10px;
     }
-    /* Custom utility for coral orange hover */
-    .hover\:bg-orange-600:hover {
-      background-color: #EA580C !important;
+    .dark ::-webkit-scrollbar-track {
+      background: #1f2937;
     }
-    .bg-purple-700-custom {
-      background-color: #7E22CE;
+    .dark ::-webkit-scrollbar-thumb {
+      background: #4b5563;
     }
-    .hover\:bg-purple-800-custom:hover {
-      background-color: #6B21A5;
+    input, select, textarea {
+      transition: all 0.2s;
     }
-    .text-purple-700-custom {
-      color: #7E22CE;
+    .card-hover {
+      transition: transform 0.15s ease, box-shadow 0.2s;
     }
-    .border-purple-200-custom {
-      border-color: #E9D5FF;
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
     }
-    .from-purple-50-custom {
-      --tw-gradient-from: #FAF5FF;
+    .dark .card-hover:hover {
+      box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.4);
+    }
+    .btn-loading {
+      opacity: 0.7;
+      cursor: wait;
+    }
+    .toast-notification {
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .modal-backdrop {
+      backdrop-filter: blur(6px);
+      background-color: rgba(0,0,0,0.4);
+      transition: all 0.2s;
+    }
+    .dark .modal-backdrop {
+      background-color: rgba(0,0,0,0.6);
+    }
+    .expense-row {
+      transition: background-color 0.15s ease;
+    }
+    .expense-row:hover {
+      background-color: #f9fafb;
+    }
+    .dark .expense-row:hover {
+      background-color: #374151;
+    }
+    
+    /* Mobile specific centering */
+    @media (max-width: 768px) {
+      .mobile-center {
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+      }
+      .mobile-center-flex {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .mobile-card-center {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+      }
+      .filter-row-mobile {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .date-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.4);
+        padding: 0.25rem 0.75rem;
+        border-radius: 2rem;
+      }
+      .dark .date-filter-group {
+        background: rgba(0,0,0,0.3);
+      }
+      .category-chips {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        margin: 0.75rem 0;
+      }
+      .category-chip {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.6rem;
+      }
+    }
+    
+    /* Error state styles */
+    .error-border {
+      border-color: #EF4444 !important;
+      animation: shake 0.3s ease-in-out;
+    }
+    .error-message {
+      color: #EF4444;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .required-star {
+      color: #EF4444;
+      margin-left: 0.125rem;
     }
   </style>
 </head>
-<body class="font-sans antialiased">
+<body class="bg-cream dark:bg-gray-900 text-charcoal dark:text-gray-200 font-sans antialiased">
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
-    <!-- Header with new purple theme -->
-    <div class="text-center mb-8">
-      <h1 class="text-3xl md:text-4xl font-bold text-stone-800 inline-flex items-center gap-3">
-        <i class="fas fa-wallet text-purple-700" style="color:#7E22CE"></i> 
-        ExpenseTracker
-      </h1>
-      <p class="text-stone-500 mt-1 text-sm">Track, edit & visualize your spending</p>
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-8 mobile-center-flex md:flex-row">
+      <div class="flex items-center gap-3">
+        <div class="bg-primary/10 dark:bg-primary/20 p-2.5 rounded-2xl">
+          <i class="fas fa-wallet text-primary text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">PearlLedger</h1>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">PKR expense tracker • Pakistan</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="darkModeToggle" class="relative w-12 h-6 rounded-full bg-gray-200 dark:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary shadow-inner" aria-label="Toggle dark mode">
+          <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white dark:bg-primary rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center text-xs dark:translate-x-6">
+            <i class="fas fa-sun text-yellow-500 text-[10px] dark:hidden"></i>
+            <i class="fas fa-moon text-gray-300 text-[10px] hidden dark:inline"></i>
+          </span>
+        </button>
+        <div class="hidden sm:flex items-center gap-1 text-sm bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+          <i class="fas fa-database text-primary/70 text-xs"></i>
+          <span class="text-gray-600 dark:text-gray-300">local storage • PKR</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Main grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- LEFT COLUMN -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- Add / Edit Expense Card - white background with warm stone border -->
-        <div class="bg-white rounded-2xl shadow-md p-5 border border-stone-200 card-transition">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-semibold text-stone-800 flex items-center gap-2">
-              <i class="fas fa-pen-alt" style="color:#7E22CE"></i> 
-              <span id="form-title">Add New Expense</span>
-            </h2>
-            <button id="cancel-edit-btn" class="text-sm text-stone-400 hover:text-red-500 transition hidden">
-              <i class="fas fa-times-circle"></i> Cancel
-            </button>
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-2xl p-4 shadow-md mobile-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">💰 Total Spent</p>
+        <p class="text-2xl font-bold text-primary" id="totalAmountDisplay">PKR 0.00</p>
+      </div>
+      <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-2xl p-4 shadow-md mobile-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">📊 Average Daily</p>
+        <p class="text-2xl font-bold text-secondary" id="avgDaily">PKR 0.00</p>
+      </div>
+      <div class="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded-2xl p-4 shadow-md mobile-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">📝 Expenses</p>
+        <p class="text-2xl font-bold text-accent" id="txnCount">0</p>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Left column: add expense form with enhanced validation -->
+      <div class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5 border border-gray-100 dark:border-gray-700 transition-all mobile-center-flex">
+        <div class="flex items-center gap-2 mb-4 justify-center md:justify-start">
+          <i class="fas fa-plus-circle text-primary text-xl"></i>
+          <h2 class="text-xl font-semibold">Add Expense</h2>
+        </div>
+        <form id="expenseForm" class="space-y-4 w-full">
+          <!-- Title Field -->
+          <div>
+            <label class="block text-sm font-medium mb-1 text-center md:text-left">
+              Title <span class="required-star">*</span>
+            </label>
+            <input type="text" id="title" maxlength="100" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary focus:border-transparent text-center md:text-left" placeholder="e.g., Dinner with friends" aria-label="Expense title">
+            <div id="titleError" class="error-message hidden">
+              <i class="fas fa-exclamation-circle text-xs"></i>
+              <span>Title is required</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1 text-center" id="titleCharCount">0/100</p>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Title *</label>
-              <input type="text" id="title" placeholder="e.g., Groceries, Dinner" class="w-full border border-stone-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-purple-300 outline-none transition">
-              <p id="title-error" class="text-red-600 text-xs mt-1 hidden"></p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Amount ($) *</label>
-              <input type="number" id="amount" placeholder="0.00" step="0.01" class="w-full border border-stone-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-purple-300 outline-none">
-              <p id="amount-error" class="text-red-600 text-xs mt-1 hidden"></p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Category *</label>
-              <select id="category" class="w-full border border-stone-300 rounded-xl px-4 py-2 bg-white">
-                <option value="Food">🍔 Food</option>
-                <option value="Utilities">💡 Utilities</option>
-                <option value="Entertainment">🎬 Entertainment</option>
-                <option value="Transport">🚗 Transport</option>
-                <option value="Shopping">🛍️ Shopping</option>
-                <option value="Other">📌 Other</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-stone-700 mb-1">Date *</label>
-              <input type="date" id="date" class="w-full border border-stone-300 rounded-xl px-4 py-2">
-              <p id="date-error" class="text-red-600 text-xs mt-1 hidden"></p>
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block text-sm font-medium text-stone-700 mb-1">Notes (optional)</label>
-              <textarea id="notes" rows="2" placeholder="Any additional details..." class="w-full border border-stone-300 rounded-xl px-4 py-2 resize-none"></textarea>
+          
+          <!-- Amount Field -->
+          <div>
+            <label class="block text-sm font-medium mb-1 text-center md:text-left">
+              Amount (PKR) <span class="required-star">*</span>
+            </label>
+            <input type="number" id="amount" step="0.01" min="0.01" max="999999999" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary text-center" placeholder="e.g., 2200" aria-label="Expense amount">
+            <div id="amountError" class="error-message hidden">
+              <i class="fas fa-exclamation-circle text-xs"></i>
+              <span>Amount must be a positive number</span>
             </div>
           </div>
-          <div class="mt-5 flex gap-3">
-            <button id="submit-expense-btn" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition flex items-center gap-2" style="background-color:#7E22CE">
-              <i class="fas fa-save"></i> Add Expense
+          
+          <!-- Category Field -->
+          <div>
+            <label class="block text-sm font-medium mb-1 text-center md:text-left">
+              Category <span class="required-star">*</span>
+            </label>
+            <select id="category" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-center md:text-left" aria-label="Expense category">
+              <option value="">Select a category</option>
+              <option value="Food">🍔 Food</option>
+              <option value="Transport">🚗 Transport</option>
+              <option value="Utilities">💡 Utilities</option>
+              <option value="Shopping">🛍️ Shopping</option>
+              <option value="Entertainment">🎬 Entertainment</option>
+              <option value="Health">💊 Health</option>
+              <option value="Other">📦 Other</option>
+            </select>
+            <div id="categoryError" class="error-message hidden">
+              <i class="fas fa-exclamation-circle text-xs"></i>
+              <span>Category is required</span>
+            </div>
+          </div>
+          
+          <!-- Date Field -->
+          <div>
+            <label class="block text-sm font-medium mb-1 text-center md:text-left">
+              Date <span class="required-star">*</span>
+            </label>
+            <input type="date" id="date" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-center" aria-label="Expense date">
+            <div id="dateError" class="error-message hidden">
+              <i class="fas fa-exclamation-circle text-xs"></i>
+              <span>Date is required</span>
+            </div>
+          </div>
+          
+          <!-- Notes Field (Optional) -->
+          <div>
+            <label class="block text-sm font-medium mb-1 text-center md:text-left">Notes (optional)</label>
+            <input type="text" id="notes" maxlength="200" placeholder="extra info" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-center md:text-left" aria-label="Additional notes">
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-2 pt-2 justify-center">
+            <button type="submit" class="bg-primary hover:bg-primary/80 text-white font-medium py-2.5 px-5 rounded-xl transition shadow-md" id="submitBtn">
+              <i class="fas fa-save mr-2"></i>Add Expense
             </button>
+            <button type="button" id="cancelEditBtn" class="hidden bg-gray-400 hover:bg-gray-500 text-white py-2.5 px-4 rounded-xl transition">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right side: stats + pie chart -->
+      <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-md p-5 border border-gray-100 dark:border-gray-700">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+          <div class="flex items-center gap-2 mx-auto md:mx-0">
+            <i class="fas fa-chart-pie text-accent text-xl"></i>
+            <h2 class="text-xl font-semibold">Spending Breakdown</h2>
+          </div>
+          <div class="bg-primary/10 dark:bg-primary/20 px-3 py-1.5 rounded-full mx-auto md:mx-0">
+            <span class="text-sm font-medium"><i class="fas fa-rupee-sign mr-1"></i> Filtered Total: </span>
+            <span id="filteredTotalDisplay" class="font-bold text-primary text-lg">PKR 0.00</span>
           </div>
         </div>
-
-        <!-- Filter Bar - emerald mint accents -->
-        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow p-5 border border-stone-200">
-          <div class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[140px]">
-              <label class="text-xs font-semibold text-stone-500 uppercase tracking-wide">From Date</label>
-              <input type="date" id="filter-start" class="w-full border border-stone-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300">
-            </div>
-            <div class="flex-1 min-w-[140px]">
-              <label class="text-xs font-semibold text-stone-500 uppercase tracking-wide">To Date</label>
-              <input type="date" id="filter-end" class="w-full border border-stone-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-300">
-            </div>
-            <div class="flex-1 min-w-[140px]">
-              <label class="text-xs font-semibold text-stone-500 uppercase tracking-wide">Category</label>
-              <select id="filter-category" class="w-full border border-stone-300 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-300">
-                <option value="all">All Categories</option>
-                <option value="Food">Food</option>
-                <option value="Utilities">Utilities</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Transport">Transport</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div>
-              <button id="apply-filters" class="bg-emerald-400 hover:bg-emerald-500 text-stone-800 px-5 py-2 rounded-xl text-sm shadow flex items-center gap-2 transition" style="background-color:#34D399">
-                <i class="fas fa-filter"></i> Apply
-              </button>
-            </div>
-            <div>
-              <button id="clear-filters" class="border border-stone-300 hover:bg-stone-100 px-5 py-2 rounded-xl text-sm flex items-center gap-2 transition text-stone-700">
-                <i class="fas fa-undo-alt"></i> Reset
-              </button>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="flex justify-center">
+            <canvas id="categoryChart" class="max-h-52 w-full max-w-[250px] md:max-w-full"></canvas>
           </div>
-        </div>
-
-        <!-- Expenses List -->
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-stone-200">
-          <div class="px-5 py-3 border-b bg-stone-50 flex justify-between items-center">
-            <h2 class="font-semibold text-stone-800"><i class="fas fa-list-ul mr-2" style="color:#7E22CE"></i>All Expenses</h2>
-            <span id="expense-count" class="text-xs bg-stone-200 text-stone-700 px-2 py-1 rounded-full">0 items</span>
-          </div>
-          <div id="expenses-container" class="p-4">
-            <div class="text-center text-stone-400 py-8">No expenses added. Create your first expense!</div>
+          <div class="flex flex-col justify-center space-y-3 text-sm mobile-center-flex">
+            <div class="flex items-center gap-2 justify-center md:justify-start"><span class="w-3 h-3 rounded-full bg-[#7E22CE]"></span><span>Highest category</span><span id="topCategory" class="font-medium ml-auto">—</span></div>
+            <div class="flex items-center gap-2 justify-center md:justify-start"><span class="w-3 h-3 rounded-full bg-[#34D399]"></span><span>Filtered average daily</span><span id="filteredAvgDaily" class="font-medium ml-auto">PKR 0</span></div>
+            <div class="flex items-center gap-2 justify-center md:justify-start"><span class="w-3 h-3 rounded-full bg-[#F97316]"></span><span>Showing</span><span id="filteredCount" class="font-medium ml-auto">0 expenses</span></div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- RIGHT COLUMN: Summary with orange accent -->
-      <div class="space-y-6">
-        <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl shadow-md p-5 border border-purple-100" style="background: linear-gradient(135deg, #FAF5FF 0%, #FFFFFF 100%);">
-          <h2 class="text-xl font-semibold text-stone-800 flex items-center gap-2">
-            <i class="fas fa-chart-pie" style="color:#F97316"></i> Summary
-          </h2>
-          <div class="mt-3 text-center">
-            <p class="text-stone-500 text-sm">Total Spent</p>
-            <p id="total-amount" class="text-3xl md:text-4xl font-extrabold" style="color:#7E22CE">$0.00</p>
+    <!-- Filters Section -->
+    <div class="bg-white/60 dark:bg-gray-800/40 backdrop-blur-sm rounded-xl p-4 mb-4">
+      <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div class="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
+          <div class="flex-1 min-w-[calc(50%-1rem)] md:min-w-0">
+            <div class="relative">
+              <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="date" id="filterDateFrom" class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm" aria-label="Filter from date">
+            </div>
           </div>
-          <div class="mt-5">
-            <canvas id="expense-chart" width="400" height="300" style="max-height: 240px; width:100%"></canvas>
+          <span class="text-gray-500 text-xs md:text-sm">→</span>
+          <div class="flex-1 min-w-[calc(50%-1rem)] md:min-w-0">
+            <div class="relative">
+              <i class="fas fa-calendar-check absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="date" id="filterDateTo" class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm" aria-label="Filter to date">
+            </div>
           </div>
-          <div id="chart-empty-msg" class="text-center text-xs text-stone-400 hidden mt-2">No data to display chart</div>
+          <select id="filterCategory" class="hidden md:block pl-3 pr-8 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm" aria-label="Filter by category">
+            <option value="ALL">All categories</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Health">Health</option>
+            <option value="Other">Other</option>
+          </select>
+          <button id="clearFiltersBtn" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-3 py-2 rounded-lg transition text-sm whitespace-nowrap">
+            <i class="fas fa-undo-alt mr-1"></i>Reset
+          </button>
         </div>
-        <div class="bg-white rounded-2xl shadow p-4 text-sm text-stone-500 border border-stone-200">
-          <i class="fas fa-info-circle mr-1" style="color:#F97316"></i> Data is saved locally. Edit / delete any expense.
+        <div class="text-sm text-gray-500 dark:text-gray-400 text-center md:text-right">
+          <i class="fas fa-list-ul mr-1"></i> <span id="expenseCountDisplay">0</span> expenses
+        </div>
+      </div>
+      
+      <!-- Mobile category chips -->
+      <div class="flex flex-wrap gap-2 justify-center mt-3 md:hidden">
+        <button data-category="ALL" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-primary/20 text-primary font-medium">All</button>
+        <button data-category="Food" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700">Food</button>
+        <button data-category="Transport" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700">Transport</button>
+        <button data-category="Utilities" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700">Utilities</button>
+        <button data-category="Shopping" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700">Shopping</button>
+        <button data-category="Entertainment" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700">Entertainment</button>
+        <button data-category="Health" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700">Health</button>
+        <button data-category="Other" class="mobile-filter-chip px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700">Other</button>
+      </div>
+    </div>
+
+    <!-- expense list -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
+      <div class="hidden md:block overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-900/50">
+            <tr class="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th class="px-5 py-4">Title</th>
+              <th class="px-4 py-4">Amount (PKR)</th>
+              <th class="px-4 py-4">Category</th>
+              <th class="px-4 py-4">Date</th>
+              <th class="px-4 py-4">Notes</th>
+              <th class="px-5 py-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="expenseTableBody" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+        </table>
+      </div>
+      <div id="mobileExpenseList" class="md:hidden p-4 space-y-3 mobile-center-flex"></div>
+      <div id="emptyMessage" class="text-center py-12 text-gray-400 hidden flex-col items-center gap-2">
+        <i class="fas fa-receipt text-4xl opacity-40"></i>
+        <p>No expenses found. Add your first expense!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal -->
+  <div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 transition-all" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl transform transition-all animate-modal-pop border border-gray-200 dark:border-gray-700">
+      <div class="p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-red-100 dark:bg-red-900/30 p-2 rounded-full">
+            <i class="fas fa-trash-alt text-red-600 dark:text-red-400 text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Delete Expense</h3>
+        </div>
+        <p class="text-gray-600 dark:text-gray-300 mb-2">Are you sure you want to delete this expense?</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">This action cannot be undone.</p>
+        <div class="flex gap-3 justify-end">
+          <button id="modalCancelBtn" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium">Cancel</button>
+          <button id="modalConfirmBtn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition font-medium shadow-md">Delete</button>
         </div>
       </div>
     </div>
   </div>
 
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
   <script>
-    // ---------- GLOBAL STATE ----------
+    // Complete application logic with enhanced validation
     let expenses = [];
-    let filteredExpenses = [];
-    let editingId = null;
-    let chartInstance = null;
+    let editId = null;
+    let categoryChart = null;
+    let pendingDeleteId = null;
 
     // DOM elements
     const titleInput = document.getElementById('title');
@@ -205,287 +458,475 @@
     const categorySelect = document.getElementById('category');
     const dateInput = document.getElementById('date');
     const notesInput = document.getElementById('notes');
-    const submitBtn = document.getElementById('submit-expense-btn');
-    const cancelEditBtn = document.getElementById('cancel-edit-btn');
-    const formTitleSpan = document.getElementById('form-title');
-    const expensesContainer = document.getElementById('expenses-container');
-    const totalSpan = document.getElementById('total-amount');
-    const expenseCountSpan = document.getElementById('expense-count');
-    const filterStart = document.getElementById('filter-start');
-    const filterEnd = document.getElementById('filter-end');
-    const filterCategory = document.getElementById('filter-category');
-    const applyFiltersBtn = document.getElementById('apply-filters');
-    const clearFiltersBtn = document.getElementById('clear-filters');
-    const titleError = document.getElementById('title-error');
-    const amountError = document.getElementById('amount-error');
-    const dateError = document.getElementById('date-error');
+    const expenseForm = document.getElementById('expenseForm');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const totalAmountDisplay = document.getElementById('totalAmountDisplay');
+    const filteredTotalDisplay = document.getElementById('filteredTotalDisplay');
+    const filteredAvgDailySpan = document.getElementById('filteredAvgDaily');
+    const filteredCountSpan = document.getElementById('filteredCount');
+    const filterDateFrom = document.getElementById('filterDateFrom');
+    const filterDateTo = document.getElementById('filterDateTo');
+    const filterCategory = document.getElementById('filterCategory');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    const expenseTableBody = document.getElementById('expenseTableBody');
+    const mobileExpenseList = document.getElementById('mobileExpenseList');
+    const emptyMessage = document.getElementById('emptyMessage');
+    const expenseCountDisplay = document.getElementById('expenseCountDisplay');
+    const topCategorySpan = document.getElementById('topCategory');
+    const avgDailySpan = document.getElementById('avgDaily');
+    const txnCountSpan = document.getElementById('txnCount');
+    const titleCharCount = document.getElementById('titleCharCount');
+    
+    // Error message elements
+    const titleError = document.getElementById('titleError');
+    const amountError = document.getElementById('amountError');
+    const categoryError = document.getElementById('categoryError');
+    const dateError = document.getElementById('dateError');
+    
+    const deleteModal = document.getElementById('deleteModal');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 
-    function saveToLocalStorage() {
-      localStorage.setItem('expense_tracker_data', JSON.stringify(expenses));
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+      const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+      toast.className = `toast-notification ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm`;
+      toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
 
-    function loadFromLocalStorage() {
-      const stored = localStorage.getItem('expense_tracker_data');
-      if (stored) {
-        expenses = JSON.parse(stored);
-      } else {
-        expenses = [
-          { id: Date.now()+1, title: "Dinner with friends", amount: 45.50, category: "Food", date: "2025-06-01", notes: "Italian restaurant" },
-          { id: Date.now()+2, title: "Electricity Bill", amount: 89.99, category: "Utilities", date: "2025-06-05", notes: "June payment" },
-          { id: Date.now()+3, title: "Movie tickets", amount: 24.00, category: "Entertainment", date: "2025-06-03", notes: "Oppenheimer" }
-        ];
-        saveToLocalStorage();
-      }
-    }
-
-    function applyFiltersAndRender() {
-      let filtered = [...expenses];
-      const startDate = filterStart.value;
-      const endDate = filterEnd.value;
-      const catFilter = filterCategory.value;
-
-      if (startDate) filtered = filtered.filter(exp => exp.date >= startDate);
-      if (endDate) filtered = filtered.filter(exp => exp.date <= endDate);
-      if (catFilter !== 'all') filtered = filtered.filter(exp => exp.category === catFilter);
-      filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
-      filteredExpenses = filtered;
-      renderExpenseList();
-      updateSummaryAndChart();
-    }
-
-    function renderExpenseList() {
-      if (!filteredExpenses.length) {
-        expensesContainer.innerHTML = `<div class="text-center text-stone-400 py-8 bg-stone-50 rounded-xl"><i class="fas fa-receipt"></i> No expenses match the current view.</div>`;
-        expenseCountSpan.innerText = `0 items`;
-        return;
-      }
-      expenseCountSpan.innerText = `${filteredExpenses.length} ${filteredExpenses.length === 1 ? 'item' : 'items'}`;
-      const isMobile = window.innerWidth < 768;
-      if (!isMobile) {
-        let tableHtml = `<div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-stone-100 text-stone-600"><tr><th class="px-4 py-2 text-left">Title</th><th class="px-4 py-2 text-left">Amount</th><th class="px-4 py-2 text-left">Category</th><th class="px-4 py-2 text-left">Date</th><th class="px-4 py-2 text-center">Actions</th></tr></thead><tbody>`;
-        filteredExpenses.forEach(exp => {
-          tableHtml += `<tr class="border-b hover:bg-stone-50 transition">
-            <td class="px-4 py-3 font-medium text-stone-800">${escapeHtml(exp.title)} ${exp.notes ? `<span class="text-xs text-stone-400 ml-1"><i class="fas fa-paperclip"></i></span>` : ''}</td>
-            <td class="px-4 py-3 font-semibold" style="color:#7E22CE">$${exp.amount.toFixed(2)}</td>
-            <td class="px-4 py-3"><span class="bg-stone-100 px-2 py-1 rounded-full text-xs text-stone-700">${exp.category}</span></td>
-            <td class="px-4 py-3 text-stone-500">${exp.date}</td>
-            <td class="px-4 py-3 text-center space-x-2">
-              <button class="edit-expense-btn text-orange-500 hover:text-orange-600 transition" data-id="${exp.id}"><i class="fas fa-edit"></i></button>
-              <button class="delete-expense-btn text-red-600 hover:text-red-700 transition ml-2" data-id="${exp.id}"><i class="fas fa-trash-alt"></i></button>
-            </td>
-          </tr>`;
-        });
-        tableHtml += `</tbody></table></div>`;
-        expensesContainer.innerHTML = tableHtml;
-      } else {
-        let cardsHtml = `<div class="grid grid-cols-1 gap-3">`;
-        filteredExpenses.forEach(exp => {
-          cardsHtml += `
-            <div class="bg-white border border-stone-200 rounded-xl p-4 shadow-sm flex justify-between items-start">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 flex-wrap"><span class="font-bold text-stone-800">${escapeHtml(exp.title)}</span><span class="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">${exp.category}</span></div>
-                <div class="font-semibold mt-1" style="color:#7E22CE">$${exp.amount.toFixed(2)}</div>
-                <div class="text-xs text-stone-400 flex items-center gap-2 mt-1"><i class="far fa-calendar-alt"></i> ${exp.date} ${exp.notes ? `<span class="italic">📝 ${escapeHtml(exp.notes)}</span>` : ''}</div>
-              </div>
-              <div class="flex flex-col gap-2">
-                <button class="edit-expense-btn text-orange-500 text-lg" data-id="${exp.id}"><i class="fas fa-edit"></i></button>
-                <button class="delete-expense-btn text-red-600 text-lg" data-id="${exp.id}"><i class="fas fa-trash"></i></button>
-              </div>
-            </div>`;
-        });
-        cardsHtml += `</div>`;
-        expensesContainer.innerHTML = cardsHtml;
-      }
-      document.querySelectorAll('.edit-expense-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = parseInt(btn.getAttribute('data-id'));
-          startEditExpense(id);
-        });
+    function clearFieldErrors() {
+      [titleInput, amountInput, categorySelect, dateInput].forEach(field => {
+        field.classList.remove('error-border');
       });
-      document.querySelectorAll('.delete-expense-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = parseInt(btn.getAttribute('data-id'));
-          if (confirm('Delete this expense permanently?')) deleteExpenseById(id);
-        });
-      });
-    }
-
-    function escapeHtml(str) {
-      if(!str) return '';
-      return str.replace(/[&<>]/g, function(m) {
-        if(m === '&') return '&amp;';
-        if(m === '<') return '&lt;';
-        if(m === '>') return '&gt;';
-        return m;
-      });
-    }
-
-    function updateSummaryAndChart() {
-      const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-      totalSpan.innerText = `$${total.toFixed(2)}`;
-      const categoryMap = new Map();
-      filteredExpenses.forEach(exp => categoryMap.set(exp.category, (categoryMap.get(exp.category) || 0) + exp.amount));
-      const labels = Array.from(categoryMap.keys());
-      const dataValues = Array.from(categoryMap.values());
-      const ctx = document.getElementById('expense-chart').getContext('2d');
-      if (chartInstance) chartInstance.destroy();
-      if (labels.length === 0) {
-        document.getElementById('chart-empty-msg').classList.remove('hidden');
-        chartInstance = new Chart(ctx, {
-          type: 'pie',
-          data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: ['#D6D3D1'] }] },
-          options: { plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: () => 'No expenses' } } } }
-        });
-        return;
-      }
-      document.getElementById('chart-empty-msg').classList.add('hidden');
-      chartInstance = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: dataValues,
-            backgroundColor: ['#7E22CE', '#34D399', '#F97316', '#8B5CF6', '#10B981', '#F59E0B'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 11 }, color: '#292524' } },
-            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: $${ctx.raw.toFixed(2)}` } }
-          }
-        }
-      });
-    }
-
-    function addExpense(expenseData) {
-      const newId = Date.now();
-      const newExpense = { ...expenseData, id: newId, amount: parseFloat(expenseData.amount) };
-      expenses.push(newExpense);
-      saveToLocalStorage();
-      resetFormAndEditing();
-      applyFiltersAndRender();
-    }
-
-    function updateExpense(id, updatedData) {
-      const index = expenses.findIndex(exp => exp.id === id);
-      if (index !== -1) {
-        expenses[index] = { ...expenses[index], ...updatedData, amount: parseFloat(updatedData.amount) };
-        saveToLocalStorage();
-        resetFormAndEditing();
-        applyFiltersAndRender();
-      }
-    }
-
-    function deleteExpenseById(id) {
-      expenses = expenses.filter(exp => exp.id !== id);
-      saveToLocalStorage();
-      if (editingId === id) resetFormAndEditing();
-      applyFiltersAndRender();
-    }
-
-    function startEditExpense(id) {
-      const expense = expenses.find(exp => exp.id === id);
-      if (!expense) return;
-      editingId = expense.id;
-      titleInput.value = expense.title;
-      amountInput.value = expense.amount;
-      categorySelect.value = expense.category;
-      dateInput.value = expense.date;
-      notesInput.value = expense.notes || '';
-      submitBtn.innerHTML = '<i class="fas fa-pen"></i> Update Expense';
-      submitBtn.style.backgroundColor = '#F97316';
-      formTitleSpan.innerText = 'Edit Expense';
-      cancelEditBtn.classList.remove('hidden');
-    }
-
-    function resetFormAndEditing() {
-      titleInput.value = '';
-      amountInput.value = '';
-      categorySelect.value = 'Food';
-      dateInput.value = '';
-      notesInput.value = '';
-      editingId = null;
-      submitBtn.innerHTML = '<i class="fas fa-save"></i> Add Expense';
-      submitBtn.style.backgroundColor = '#7E22CE';
-      formTitleSpan.innerText = 'Add New Expense';
-      cancelEditBtn.classList.add('hidden');
-      [titleError, amountError, dateError].forEach(err => err.classList.add('hidden'));
+      titleError.classList.add('hidden');
+      amountError.classList.add('hidden');
+      categoryError.classList.add('hidden');
+      dateError.classList.add('hidden');
     }
 
     function validateForm() {
       let isValid = true;
-      const titleVal = titleInput.value.trim();
-      const amountVal = amountInput.value.trim();
-      const dateVal = dateInput.value;
-      if (!titleVal) {
-        titleError.innerText = 'Title is required';
+      clearFieldErrors();
+      
+      // Title validation
+      if (!titleInput.value.trim()) {
+        titleInput.classList.add('error-border');
         titleError.classList.remove('hidden');
         isValid = false;
-      } else titleError.classList.add('hidden');
-      if (!amountVal || isNaN(parseFloat(amountVal)) || parseFloat(amountVal) <= 0) {
-        amountError.innerText = 'Amount must be a positive number';
+      }
+      
+      // Amount validation
+      const amount = parseFloat(amountInput.value);
+      if (isNaN(amount) || amount <= 0) {
+        amountInput.classList.add('error-border');
         amountError.classList.remove('hidden');
         isValid = false;
-      } else amountError.classList.add('hidden');
-      if (!dateVal) {
-        dateError.innerText = 'Please select a date';
+      }
+      
+      // Category validation
+      if (!categorySelect.value) {
+        categorySelect.classList.add('error-border');
+        categoryError.classList.remove('hidden');
+        isValid = false;
+      }
+      
+      // Date validation
+      if (!dateInput.value) {
+        dateInput.classList.add('error-border');
         dateError.classList.remove('hidden');
         isValid = false;
-      } else {
-        const today = new Date().toISOString().split('T')[0];
-        if (dateVal > today) {
-          dateError.innerText = 'Date cannot be in the future';
-          dateError.classList.remove('hidden');
-          isValid = false;
-        } else dateError.classList.add('hidden');
       }
+      
       return isValid;
     }
 
-    function onSubmitExpense() {
-      if (!validateForm()) {
-        const submitBtnEl = document.getElementById('submit-expense-btn');
-        submitBtnEl.classList.add('error-shake');
-        setTimeout(() => submitBtnEl.classList.remove('error-shake'), 300);
+    function formatDate(dateString) {
+      if(!dateString) return 'N/A';
+      const d = new Date(dateString);
+      return d.toLocaleDateString('en-PK', { day:'numeric', month:'short', year:'numeric' });
+    }
+    
+    function getTodayDate() {
+      return new Date().toISOString().split('T')[0];
+    }
+    
+    function calculateAverageDaily(expensesList, fromDate, toDate) {
+      if(expensesList.length === 0) return 0;
+      let startDate, endDate;
+      const dates = expensesList.map(e => new Date(e.date)).filter(d => !isNaN(d));
+      if(dates.length === 0) return 0;
+      if (fromDate && toDate) {
+        startDate = new Date(fromDate);
+        endDate = new Date(toDate);
+      } else if (fromDate) {
+        startDate = new Date(fromDate);
+        endDate = new Date(Math.max(...dates));
+      } else if (toDate) {
+        startDate = new Date(Math.min(...dates));
+        endDate = new Date(toDate);
+      } else {
+        startDate = new Date(Math.min(...dates));
+        endDate = new Date(Math.max(...dates));
+      }
+      const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+      const total = expensesList.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+      return daysDiff > 0 ? total / daysDiff : total;
+    }
+    
+    function loadExpenses() {
+      const stored = localStorage.getItem('pearlledger_expenses');
+      if(stored) {
+        expenses = JSON.parse(stored);
+      } else {
+        const sampleExpenses = [
+          { id: Date.now() + 201, title: 'Tests', amount: 5000, category: 'Health', date: '2026-06-15', notes: 'Yearly' },
+          { id: Date.now() + 202, title: 'Monthly checkup', amount: 5000, category: 'Health', date: '2026-06-12', notes: 'M Imp' },
+          { id: Date.now() + 203, title: 'Bills', amount: 30000, category: 'Utilities', date: '2026-06-10', notes: 'Electricity and Gas' },
+          { id: Date.now() + 204, title: 'Groceries', amount: 40000, category: 'Food', date: '2026-06-10', notes: 'Monthly' },
+          { id: Date.now() + 209, title: 'New recipe', amount: 2000, category: 'Other', date: '2026-06-09', notes: 'Random' },
+          { id: Date.now() + 205, title: 'Joggers', amount: 7000, category: 'Shopping', date: '2026-06-08', notes: 'MUST' },
+          { id: Date.now() + 206, title: 'Netflix subscription', amount: 1100, category: 'Entertainment', date: '2026-06-08', notes: 'Monthly' },
+          { id: Date.now() + 207, title: 'New bag', amount: 2500, category: 'Shopping', date: '2026-06-08', notes: 'Emporium' },
+          { id: Date.now() + 208, title: 'Fuel - Petrol', amount: 3500, category: 'Transport', date: '2026-06-04', notes: 'Honda 125' }
+        ];
+        sampleExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+        expenses = sampleExpenses;
+        saveToLocal();
+      }
+      expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+      saveToLocal();
+      renderAll();
+    }
+    
+    function saveToLocal() {
+      localStorage.setItem('pearlledger_expenses', JSON.stringify(expenses));
+    }
+    
+    function performDelete(id) {
+      expenses = expenses.filter(exp => exp.id !== id);
+      expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+      saveToLocal();
+      if(editId === id) resetForm();
+      renderAll();
+      showToast('Expense deleted successfully', 'info');
+    }
+    
+    function confirmDelete(id) {
+      pendingDeleteId = id;
+      deleteModal.classList.remove('hidden');
+      deleteModal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+      deleteModal.classList.add('hidden');
+      deleteModal.classList.remove('flex');
+      document.body.style.overflow = '';
+      pendingDeleteId = null;
+    }
+    
+    function onConfirmDelete() {
+      if(pendingDeleteId !== null) {
+        performDelete(pendingDeleteId);
+        closeModal();
+      }
+    }
+    
+    function addExpense(expenseData) {
+      const newExpense = { id: Date.now(), ...expenseData };
+      expenses.push(newExpense);
+      expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+      saveToLocal();
+      renderAll();
+      showToast('Expense added successfully!', 'success');
+    }
+    
+    function updateExpense(id, updatedData) {
+      const index = expenses.findIndex(exp => exp.id === id);
+      if(index !== -1) {
+        expenses[index] = { ...expenses[index], ...updatedData, id };
+        expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+        saveToLocal();
+        renderAll();
+        showToast('Expense updated successfully!', 'success');
+      }
+    }
+    
+    function getFilteredExpenses() {
+      let filtered = [...expenses];
+      const fromDate = filterDateFrom.value;
+      const toDate = filterDateTo.value;
+      const cat = filterCategory.value;
+      if(fromDate) filtered = filtered.filter(exp => exp.date >= fromDate);
+      if(toDate) filtered = filtered.filter(exp => exp.date <= toDate);
+      if(cat !== 'ALL') filtered = filtered.filter(exp => exp.category === cat);
+      return filtered;
+    }
+    
+    function updateStatsAndChart(expensesList) {
+      const allTotal = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+      totalAmountDisplay.innerText = `PKR ${allTotal.toFixed(2)}`;
+      const filteredTotal = expensesList.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+      filteredTotalDisplay.innerText = `PKR ${filteredTotal.toFixed(2)}`;
+      const avgDailyVal = calculateAverageDaily(expensesList, filterDateFrom.value, filterDateTo.value);
+      avgDailySpan.innerText = `PKR ${avgDailyVal.toFixed(2)}`;
+      filteredAvgDailySpan.innerText = `PKR ${avgDailyVal.toFixed(2)}`;
+      txnCountSpan.innerText = expenses.length;
+      filteredCountSpan.innerText = `${expensesList.length} expenses`;
+      
+      const catMap = new Map();
+      expensesList.forEach(exp => { catMap.set(exp.category, (catMap.get(exp.category)||0) + parseFloat(exp.amount)); });
+      let topCatName = '—', topVal = -1;
+      for(let [cat, val] of catMap.entries()) {
+        if(val > topVal) { topVal = val; topCatName = cat; }
+      }
+      topCategorySpan.innerText = topCatName !== '—' ? `${topCatName} (PKR ${topVal.toFixed(2)})` : '—';
+      
+      const categories = ['Food','Transport','Utilities','Shopping','Entertainment','Health','Other'];
+      const categoryTotals = categories.map(cat => expensesList.filter(e => e.category === cat).reduce((s,e) => s + parseFloat(e.amount),0));
+      if(categoryChart) categoryChart.destroy();
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      categoryChart = new Chart(ctx, {
+        type: 'pie',
+        data: { 
+          labels: categories, 
+          datasets: [{ 
+            data: categoryTotals, 
+            backgroundColor: ['#7E22CE','#34D399','#F97316','#FBBF24','#EC4899','#06B6D4','#9CA3AF'], 
+            borderWidth: 0 
+          }] 
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10, weight: 'bold' }, boxWidth: 10 } } } }
+      });
+    }
+    
+    function escapeHtml(str) { 
+      if(!str) return ''; 
+      return str.replace(/[&<>]/g, function(m){
+        if(m==='&') return '&amp;'; 
+        if(m==='<') return '&lt;'; 
+        if(m==='>') return '&gt;'; 
+        return m;
+      }); 
+    }
+    
+    function renderExpensesList() {
+      const filtered = getFilteredExpenses();
+      expenseCountDisplay.innerText = filtered.length;
+      
+      if(filtered.length === 0) {
+        expenseTableBody.innerHTML = '';
+        mobileExpenseList.innerHTML = '';
+        emptyMessage.classList.remove('hidden');
+        updateStatsAndChart(filtered);
         return;
       }
-      const expensePayload = {
-        title: titleInput.value.trim(),
-        amount: parseFloat(amountInput.value),
-        category: categorySelect.value,
-        date: dateInput.value,
-        notes: notesInput.value.trim()
-      };
-      if (editingId !== null) updateExpense(editingId, expensePayload);
-      else addExpense(expensePayload);
+      
+      emptyMessage.classList.add('hidden');
+      
+      expenseTableBody.innerHTML = filtered.map(exp => `
+        <tr class="expense-row border-b border-gray-100 dark:border-gray-800">
+          <td class="px-5 py-3 font-medium text-gray-800 dark:text-gray-200">${escapeHtml(exp.title)}</td>
+          <td class="px-4 py-3 text-primary font-semibold">PKR ${parseFloat(exp.amount).toFixed(2)}</td>
+          <td class="px-4 py-3"><span class="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-xs font-medium">${exp.category}</span></td>
+          <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${formatDate(exp.date)}</td>
+          <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">${escapeHtml(exp.notes || '—')}</td>
+          <td class="px-5 py-3 text-center space-x-2">
+            <button class="edit-expense-btn text-blue-600 hover:text-blue-800 dark:text-blue-400 transition" data-id="${exp.id}"><i class="fas fa-edit"></i></button>
+            <button class="delete-expense-btn text-red-500 hover:text-red-700 ml-2 transition" data-id="${exp.id}"><i class="fas fa-trash-alt"></i></button>
+          </td>
+        </tr>
+      `).join('');
+      
+      mobileExpenseList.innerHTML = filtered.map(exp => `
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 card-hover w-full max-w-sm mx-auto">
+          <div class="flex justify-between items-start">
+            <div><h3 class="font-bold text-gray-800 dark:text-gray-100">${escapeHtml(exp.title)}</h3><p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">${formatDate(exp.date)} • ${exp.category}</p></div>
+            <span class="text-primary font-bold text-lg">PKR ${parseFloat(exp.amount).toFixed(2)}</span>
+          </div>
+          ${exp.notes ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><i class="far fa-sticky-note mr-1"></i>${escapeHtml(exp.notes)}</p>` : ''}
+          <div class="flex justify-end gap-3 mt-3">
+            <button class="edit-expense-mobile text-blue-600 text-sm transition" data-id="${exp.id}"><i class="fas fa-pen"></i> Edit</button>
+            <button class="delete-expense-mobile text-red-500 text-sm transition" data-id="${exp.id}"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      `).join('');
+      
+      document.querySelectorAll('.edit-expense-btn, .edit-expense-mobile').forEach(btn => {
+        btn.removeEventListener('click', handleEditClick);
+        btn.addEventListener('click', handleEditClick);
+      });
+      document.querySelectorAll('.delete-expense-btn, .delete-expense-mobile').forEach(btn => {
+        btn.removeEventListener('click', handleDeleteClick);
+        btn.addEventListener('click', handleDeleteClick);
+      });
+      updateStatsAndChart(filtered);
     }
-
-    function handleFilters() { applyFiltersAndRender(); }
-    function clearFilters() {
-      filterStart.value = '';
-      filterEnd.value = '';
-      filterCategory.value = 'all';
-      applyFiltersAndRender();
+    
+    function handleEditClick(e) {
+      const id = parseInt(e.currentTarget.getAttribute('data-id'));
+      const expense = expenses.find(exp => exp.id === id);
+      if(expense) fillFormForEdit(expense);
     }
-
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => { if (filteredExpenses) renderExpenseList(); }, 150);
-    });
-
+    
+    function handleDeleteClick(e) {
+      const id = parseInt(e.currentTarget.getAttribute('data-id'));
+      confirmDelete(id);
+    }
+    
+    function resetForm() {
+      titleInput.value = ''; 
+      amountInput.value = ''; 
+      categorySelect.value = ''; 
+      dateInput.value = getTodayDate(); 
+      notesInput.value = '';
+      editId = null;
+      cancelEditBtn.classList.add('hidden');
+      submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Add Expense';
+      submitBtn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+      submitBtn.classList.add('bg-primary', 'hover:bg-primary/80');
+      updateTitleCharCount();
+      clearFieldErrors();
+    }
+    
+    function updateTitleCharCount() {
+      const count = titleInput.value.length;
+      titleCharCount.innerText = `${count}/100`;
+      if(count > 90) titleCharCount.classList.add('text-orange-500');
+      else titleCharCount.classList.remove('text-orange-500');
+    }
+    
+    function fillFormForEdit(exp) {
+      titleInput.value = exp.title; 
+      amountInput.value = exp.amount; 
+      categorySelect.value = exp.category; 
+      dateInput.value = exp.date; 
+      notesInput.value = exp.notes || '';
+      editId = exp.id;
+      cancelEditBtn.classList.remove('hidden');
+      submitBtn.innerHTML = '<i class="fas fa-pen mr-2"></i>Update Expense';
+      submitBtn.classList.remove('bg-primary', 'hover:bg-primary/80');
+      submitBtn.classList.add('bg-orange-500', 'hover:bg-orange-600');
+      updateTitleCharCount();
+      clearFieldErrors();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      if (!validateForm()) {
+        showToast('Please fill all required fields', 'error');
+        return;
+      }
+      
+      const title = titleInput.value.trim();
+      const amount = parseFloat(amountInput.value);
+      const category = categorySelect.value;
+      const date = dateInput.value;
+      const notes = notesInput.value.trim();
+      
+      submitBtn.disabled = true; 
+      submitBtn.classList.add('btn-loading');
+      setTimeout(() => {
+        if(editId !== null) {
+          updateExpense(editId, { title, amount, category, date, notes });
+          resetForm();
+        } else {
+          addExpense({ title, amount, category, date, notes });
+          resetForm();
+        }
+        submitBtn.disabled = false; 
+        submitBtn.classList.remove('btn-loading');
+      }, 100);
+    }
+    
+    function renderAll() { renderExpensesList(); }
+    
+    function attachFilters() {
+      filterDateFrom.addEventListener('change', () => renderExpensesList());
+      filterDateTo.addEventListener('change', () => renderExpensesList());
+      filterCategory.addEventListener('change', () => renderExpensesList());
+      clearFiltersBtn.addEventListener('click', () => {
+        filterDateFrom.value = ''; 
+        filterDateTo.value = ''; 
+        filterCategory.value = 'ALL';
+        document.querySelectorAll('.filter-chip, .mobile-filter-chip').forEach(chip => {
+          if(chip.dataset.category === 'ALL') {
+            chip.classList.add('bg-primary/20', 'text-primary', 'font-medium');
+          } else {
+            chip.classList.remove('bg-primary/20', 'text-primary', 'font-medium');
+            chip.classList.add('bg-gray-100', 'dark:bg-gray-700');
+          }
+        });
+        renderExpensesList(); 
+        showToast('Filters cleared', 'info');
+      });
+      
+      document.querySelectorAll('.filter-chip, .mobile-filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const category = chip.dataset.category;
+          filterCategory.value = category;
+          document.querySelectorAll('.filter-chip, .mobile-filter-chip').forEach(c => {
+            if(c.dataset.category === category) {
+              c.classList.add('bg-primary/20', 'text-primary', 'font-medium');
+              c.classList.remove('bg-gray-100', 'dark:bg-gray-700');
+            } else {
+              c.classList.remove('bg-primary/20', 'text-primary', 'font-medium');
+              c.classList.add('bg-gray-100', 'dark:bg-gray-700');
+            }
+          });
+          renderExpensesList();
+        });
+      });
+    }
+    
+    titleInput.addEventListener('input', updateTitleCharCount);
+    
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    function initDarkMode() {
+      const isDark = localStorage.getItem('pearlledger_theme') === 'dark';
+      if(isDark) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+      darkModeToggle.addEventListener('click', () => {
+        const nowDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('pearlledger_theme', nowDark ? 'dark' : 'light');
+        showToast(`${nowDark ? 'Dark' : 'Light'} mode activated`, 'info');
+        renderExpensesList();
+      });
+    }
+    
+    function initKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        if((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); resetForm(); titleInput.focus(); showToast('New expense form ready', 'info'); }
+        if(e.key === 'Escape' && editId !== null) { resetForm(); showToast('Edit cancelled', 'info'); }
+        if(e.key === 'Escape' && !deleteModal.classList.contains('hidden')) closeModal();
+      });
+    }
+    
     function init() {
-      loadFromLocalStorage();
-      resetFormAndEditing();
-      applyFiltersAndRender();
-      submitBtn.addEventListener('click', onSubmitExpense);
-      cancelEditBtn.addEventListener('click', resetFormAndEditing);
-      applyFiltersBtn.addEventListener('click', handleFilters);
-      clearFiltersBtn.addEventListener('click', clearFilters);
+      if(!dateInput.value) dateInput.value = getTodayDate();
+      loadExpenses();
+      attachFilters();
+      expenseForm.addEventListener('submit', handleFormSubmit);
+      cancelEditBtn.addEventListener('click', resetForm);
+      initDarkMode();
+      initKeyboardShortcuts();
+      updateTitleCharCount();
+      modalCancelBtn.addEventListener('click', closeModal);
+      modalConfirmBtn.addEventListener('click', onConfirmDelete);
+      deleteModal.addEventListener('click', (e) => { if(e.target === deleteModal) closeModal(); });
     }
+    
     init();
   </script>
 </body>
